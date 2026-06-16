@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f1923" />
+  <title>🐱 האכלת החתול</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="screen active">
+    <div class="auth-bg">
+      <div class="auth-paw">🐾</div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="logo-icon">🐱</span>
+        <h1 class="logo-title">CatFeed</h1>
+        <p class="logo-sub">ניהול חכם של ארוחות לחתול</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">כניסה</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">הרשמה</button>
+      </div>
+      <div id="login-form" class="auth-form active">
+        <div class="input-group">
+          <label>אימייל</label>
+          <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" />
+        </div>
+        <div class="input-group">
+          <label>סיסמה</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="auth-error hidden"></div>
+        <button class="btn-primary full" id="login-btn" onclick="doLogin()">כניסה</button>
+      </div>
+      <div id="register-form" class="auth-form hidden">
+        <div class="input-group">
+          <label>שם החתול שלך 🐱</label>
+          <input type="text" id="reg-cat-name" placeholder="למשל: מיטי" />
+        </div>
+        <div class="input-group">
+          <label>אימייל</label>
+          <input type="email" id="reg-email" placeholder="your@email.com" autocomplete="email" />
+        </div>
+        <div class="input-group">
+          <label>סיסמה</label>
+          <input type="password" id="reg-password" placeholder="לפחות 6 תווים" autocomplete="new-password" />
+        </div>
+        <div id="register-error" class="auth-error hidden"></div>
+        <button class="btn-primary full" id="register-btn" onclick="doRegister()">הרשמה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP SCREEN -->
+  <div id="app-screen" class="screen hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-cat-name" id="header-cat-name">🐱 החתול שלי</span>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="showScreen('stats-screen')" title="סטטיסטיקות">📊</button>
+        <button class="icon-btn" onclick="doLogout()" title="יציאה">🚪</button>
+      </div>
+    </header>
+    <main class="main-content">
+
+      <!-- STATUS CARD -->
+      <div class="status-card" id="status-card">
+        <div class="status-header">
+          <span class="status-cat-emoji" id="status-emoji">😺</span>
+          <div class="status-texts">
+            <div class="status-label">מצב עכשיו</div>
+            <div class="status-value" id="status-value">טוען...</div>
+          </div>
+          <div class="status-badge" id="status-badge">—</div>
+        </div>
+        <div class="last-meal-info" id="last-meal-info">
+          <span class="lm-icon">🕐</span>
+          <span id="last-meal-text">בודק...</span>
+        </div>
+      </div>
+
+      <!-- TODAY MEALS -->
+      <div class="section-title">ארוחות היום</div>
+      <div class="meals-grid">
+        <div class="meal-card" id="breakfast-card">
+          <div class="meal-top">
+            <div class="meal-icon">🌅</div>
+            <div class="meal-info">
+              <div class="meal-name">ארוחת בוקר</div>
+              <div class="meal-time-display" id="breakfast-time-display">לא ניתנה</div>
+            </div>
+            <div class="meal-check" id="breakfast-check">⭕</div>
+          </div>
+          <div class="meal-actions" id="breakfast-actions">
+            <button class="btn-feed" onclick="quickFeed('breakfast')">✅ ניתנה עכשיו!</button>
+            <button class="btn-feed-time" onclick="openTimePicker('breakfast')">🕐 בחר שעה</button>
+          </div>
+        </div>
+        <div class="meal-card" id="dinner-card">
+          <div class="meal-top">
+            <div class="meal-icon">🌙</div>
+            <div class="meal-info">
+              <div class="meal-name">ארוחת ערב</div>
+              <div class="meal-time-display" id="dinner-time-display">לא ניתנה</div>
+            </div>
+            <div class="meal-check" id="dinner-check">⭕</div>
+          </div>
+          <div class="meal-actions" id="dinner-actions">
+            <button class="btn-feed" onclick="quickFeed('dinner')">✅ ניתנה עכשיו!</button>
+            <button class="btn-feed-time" onclick="openTimePicker('dinner')">🕐 בחר שעה</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK STATS -->
+      <div class="section-title">סטטיסטיקות מהירות</div>
+      <div class="quick-stats">
+        <div class="qs-card">
+          <div class="qs-value" id="qs-streak">—</div>
+          <div class="qs-label">ימים רצופים</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-value" id="qs-avg-breakfast">—</div>
+          <div class="qs-label">בוקר ממוצע</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-value" id="qs-avg-dinner">—</div>
+          <div class="qs-label">ערב ממוצע</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-value" id="qs-total">—</div>
+          <div class="qs-label">סה"כ ארוחות</div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="section-title">היסטוריה אחרונה</div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty">אין נתונים עדיין</div>
+      </div>
+      <div style="height:32px"></div>
+    </main>
+  </div>
+
+  <!-- STATS SCREEN -->
+  <div id="stats-screen" class="screen hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn back-btn" onclick="showScreen('app-screen')">&#8592; חזרה</button>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-cat-name">📊 סטטיסטיקות</span>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="section-title">שעות האכלה — 14 ימים אחרונים</div>
+      <div class="chart-card">
+        <canvas id="feedingTimeChart"></canvas>
+      </div>
+      <div class="section-title">השלמת ארוחות לפי יום</div>
+      <div class="chart-card">
+        <canvas id="completionChart"></canvas>
+      </div>
+      <div class="section-title">ממוצעים ופירוט</div>
+      <div class="avg-table">
+        <div class="avg-row">
+          <span>🌅 ארוחת בוקר ממוצעת</span>
+          <strong id="avg-breakfast-detail">—</strong>
+        </div>
+        <div class="avg-row">
+          <span>🌙 ארוחת ערב ממוצעת</span>
+          <strong id="avg-dinner-detail">—</strong>
+        </div>
+        <div class="avg-row">
+          <span>📅 ימים עם 2 ארוחות</span>
+          <strong id="avg-both-days">—</strong>
+        </div>
+        <div class="avg-row">
+          <span>🔥 שיא ימים רצופים</span>
+          <strong id="avg-best-streak">—</strong>
+        </div>
+      </div>
+      <div style="height:32px"></div>
+    </main>
+  </div>
+
+  <!-- TIME PICKER MODAL -->
+  <div id="time-modal" class="modal-overlay hidden" onclick="closeTimePicker(event)">
+    <div class="modal-card">
+      <div class="modal-title">📍 בחר שעת האכלה</div>
+      <div class="modal-sub" id="modal-meal-label">ארוחת בוקר</div>
+      <div class="time-picker-wrap">
+        <input type="time" id="time-picker-input" class="time-picker-input" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="confirmTimePicker()">✅ אשר שעה</button>
+        <button class="btn-secondary" onclick="closeTimePicker()">ביטול</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
