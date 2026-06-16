@@ -99,8 +99,11 @@
 
     <!-- STATUS PILL -->
     <div class="status-pill" id="status-pill">
-      <div class="sp-dot" id="sp-dot"></div>
-      <span id="sp-text">טוען...</span>
+      <div class="sp-dot"></div>
+      <div class="sp-texts">
+        <span class="sp-headline" id="sp-text">טוען...</span>
+        <span class="sp-sub" id="sp-sub"></span>
+      </div>
     </div>
 
     <!-- MEAL CARDS -->
@@ -225,19 +228,17 @@
     <!-- Custom drum picker -->
     <div class="drum-wrap">
       <div class="drum-col">
-        <div class="drum-label">שעות</div>
-        <div class="drum-scroll" id="drum-h" onscroll="drumScroll('h')">
+        <div class="drum-label">דקות</div>
+        <div class="drum-scroll" id="drum-m" onscroll="drumScroll('m')">
           <div class="drum-pad"></div>
-          <!-- hours 0-23 injected by JS -->
           <div class="drum-pad"></div>
         </div>
       </div>
       <div class="drum-sep">:</div>
       <div class="drum-col">
-        <div class="drum-label">דקות</div>
-        <div class="drum-scroll" id="drum-m" onscroll="drumScroll('m')">
+        <div class="drum-label">שעות</div>
+        <div class="drum-scroll" id="drum-h" onscroll="drumScroll('h')">
           <div class="drum-pad"></div>
-          <!-- minutes 0-59 injected by JS -->
           <div class="drum-pad"></div>
         </div>
       </div>
