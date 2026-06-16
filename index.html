@@ -220,9 +220,39 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheet-title">בחר שעה</div>
-    <input type="time" id="time-inp" class="time-inp"/>
+    <div class="sheet-subtitle" id="sheet-subtitle">ארוחת בוקר</div>
+
+    <!-- Custom drum picker -->
+    <div class="drum-wrap">
+      <div class="drum-col">
+        <div class="drum-label">שעות</div>
+        <div class="drum-scroll" id="drum-h" onscroll="drumScroll('h')">
+          <div class="drum-pad"></div>
+          <!-- hours 0-23 injected by JS -->
+          <div class="drum-pad"></div>
+        </div>
+      </div>
+      <div class="drum-sep">:</div>
+      <div class="drum-col">
+        <div class="drum-label">דקות</div>
+        <div class="drum-scroll" id="drum-m" onscroll="drumScroll('m')">
+          <div class="drum-pad"></div>
+          <!-- minutes 0-59 injected by JS -->
+          <div class="drum-pad"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- selection highlight bar -->
+    <div class="drum-selection-bar"></div>
+
+    <div class="sheet-preview" id="sheet-preview">00:00</div>
+
     <div class="sheet-actions">
-      <button class="btn-main" onclick="confirmPicker()">אישור</button>
+      <button class="btn-main" onclick="confirmPicker()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-left:6px"><polyline points="20 6 9 17 4 12"/></svg>
+        אישור
+      </button>
       <button class="btn-ghost" onclick="closeSheet()">ביטול</button>
     </div>
   </div>

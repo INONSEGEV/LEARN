@@ -122,32 +122,40 @@ function feedingsCol(dayKey){
 
 async function loadToday(){
   today={breakfast:[],dinner:[]};
-  const snap=await feedingsCol(todayKey()).orderBy('createdAt').get();
-  snap.forEach(doc=>{
-    const d=doc.data();
-    today[d.type].push({id:doc.id,time:d.time,by:d.by});
-  });
+  try{
+    const snap=await feedingsCol(todayKey()).get();
+    snap.forEach(doc=>{
+      const d=doc.data();
+      const t=d.type;
+      if(t==='breakfast'||t==='dinner'){
+        today[t].push({id:doc.id,time:d.time||new Date().toISOString(),by:d.by||'?'});
+      }
+    });
+    today.breakfast.sort((a,b)=>a.time.localeCompare(b.time));
+    today.dinner.sort((a,b)=>a.time.localeCompare(b.time));
+  }catch(e){console.error('loadToday',e);toast('שגיאה: '+e.message)}
   renderTodayUI();
 }
 
 async function loadHistory(){
   allMeals=[];
-  // get all days, sorted desc, limit 20
-  const days=await db.collection('shared').doc('cat').collection('days')
-    .orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(20).get();
-
-  const promises=[];
-  days.forEach(dayDoc=>{
-    promises.push(
-      feedingsCol(dayDoc.id).orderBy('createdAt').get().then(fsnap=>{
-        const feedings=[];
-        fsnap.forEach(f=>feedings.push({id:f.id,...f.data()}));
-        if(feedings.length>0) allMeals.push({date:dayDoc.id,feedings});
-      })
-    );
-  });
-  await Promise.all(promises);
-  allMeals.sort((a,b)=>b.date.localeCompare(a.date));
+  try{
+    const days=await db.collection('shared').doc('cat').collection('days').get();
+    const promises=[];
+    days.forEach(dayDoc=>{
+      promises.push(
+        feedingsCol(dayDoc.id).get().then(fsnap=>{
+          const feedings=[];
+          fsnap.forEach(f=>feedings.push({id:f.id,...f.data()}));
+          feedings.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+          if(feedings.length>0) allMeals.push({date:dayDoc.id,feedings});
+        })
+      );
+    });
+    await Promise.all(promises);
+    allMeals.sort((a,b)=>b.date.localeCompare(a.date));
+    if(allMeals.length>20) allMeals=allMeals.slice(0,20);
+  }catch(e){console.error('loadHistory',e)}
   renderHistory();
   renderQuickStats();
 }
@@ -182,24 +190,103 @@ async function deleteFeeding(dayKey,id){
   }catch(e){toast('שגיאה: '+e.message)}
 }
 
-// ── PICKER ─────────────────────────────────────────
+// ── DRUM PICKER ────────────────────────────────────
+let drumH=new Date().getHours(), drumM=new Date().getMinutes();
+
+function buildDrum(){
+  // Build hours 0-23
+  const dh=$('drum-h');
+  // keep first pad
+  const hPad=dh.children[0];
+  dh.innerHTML='';
+  dh.appendChild(hPad.cloneNode());
+  for(let i=0;i<24;i++){
+    const d=document.createElement('div');
+    d.className='drum-item';
+    d.dataset.val=i;
+    d.textContent=p2(i);
+    d.onclick=()=>scrollDrumTo('h',i);
+    dh.appendChild(d);
+  }
+  const hPad2=document.createElement('div');
+  hPad2.className='drum-pad';
+  dh.appendChild(hPad2);
+
+  // Build minutes 0-59
+  const dm=$('drum-m');
+  const mPad=dm.children[0];
+  dm.innerHTML='';
+  dm.appendChild(mPad.cloneNode());
+  for(let i=0;i<60;i++){
+    const d=document.createElement('div');
+    d.className='drum-item';
+    d.dataset.val=i;
+    d.textContent=p2(i);
+    d.onclick=()=>scrollDrumTo('m',i);
+    dm.appendChild(d);
+  }
+  const mPad2=document.createElement('div');
+  mPad2.className='drum-pad';
+  dm.appendChild(mPad2);
+}
+
+function scrollDrumTo(which, val, animate=true){
+  const el=$(which==='h'?'drum-h':'drum-m');
+  el.scrollTo({top: val*56, behavior: animate?'smooth':'instant'});
+}
+
+function drumScroll(which){
+  const el=$(which==='h'?'drum-h':'drum-m');
+  const idx=Math.round(el.scrollTop/56);
+  const max=which==='h'?23:59;
+  const val=Math.min(Math.max(idx,0),max);
+  if(which==='h') drumH=val; else drumM=val;
+  updateDrumUI(which,val);
+  updatePreview();
+}
+
+function updateDrumUI(which, val){
+  const el=$(which==='h'?'drum-h':'drum-m');
+  el.querySelectorAll('.drum-item').forEach(item=>{
+    const v=parseInt(item.dataset.val);
+    const diff=Math.abs(v-val);
+    item.className='drum-item'+(diff===0?' selected':diff===1?' near':'');
+  });
+}
+
+function updatePreview(){
+  const el=$('sheet-preview');
+  if(el) el.textContent=`${p2(drumH)}:${p2(drumM)}`;
+}
+
 function openPicker(type){
   pickerType=type;
-  $('sheet-title').textContent=type==='breakfast'?'בחר שעה — ארוחת בוקר':'בחר שעה — ארוחת ערב';
+  const isBf=type==='breakfast';
+  $('sheet-title').textContent='בחר שעה';
+  $('sheet-subtitle').textContent=isBf?'🌅 ארוחת בוקר':'🌙 ארוחת ערב';
+  // set to now
   const now=new Date();
-  $('time-inp').value=`${p2(now.getHours())}:${p2(now.getMinutes())}`;
+  drumH=now.getHours(); drumM=now.getMinutes();
+  buildDrum();
+  // scroll after paint
+  requestAnimationFrame(()=>{
+    scrollDrumTo('h',drumH,false);
+    scrollDrumTo('m',drumM,false);
+    updateDrumUI('h',drumH);
+    updateDrumUI('m',drumM);
+    updatePreview();
+  });
   $('sheet-overlay').classList.remove('hide');
 }
+
 function closeSheet(e){
   if(e&&e.target!==$('sheet-overlay'))return;
   $('sheet-overlay').classList.add('hide');
   pickerType=null;
 }
+
 function confirmPicker(){
-  const v=$('time-inp').value;
-  if(!v){toast('נא לבחור שעה');return}
-  const [h,m]=v.split(':').map(Number);
-  const d=new Date(); d.setHours(h,m,0,0);
+  const d=new Date(); d.setHours(drumH,drumM,0,0);
   $('sheet-overlay').classList.add('hide');
   addFeeding(pickerType,d.toISOString());
   pickerType=null;

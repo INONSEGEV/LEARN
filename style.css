@@ -165,19 +165,85 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ar
 .avg-row strong{color:var(--text);font-size:15px;font-weight:700}
 
 /* ── SHEET ────────────────────────────────────────── */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);
-  z-index:100;display:flex!important;align-items:flex-end;justify-content:center;
-  backdrop-filter:blur(2px)}
-.sheet{background:var(--card);border-radius:20px 20px 0 0;
-  padding:12px 20px calc(32px + env(safe-area-inset-bottom,0));
-  width:100%;max-width:480px}
-.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
-.sheet-title{font-size:18px;font-weight:700;margin-bottom:20px;text-align:center}
-.time-inp{display:block;width:100%;padding:18px;background:var(--bg2);
-  border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text);
-  font-size:32px;font-weight:700;text-align:center;outline:none;margin-bottom:16px;
-  -webkit-appearance:none}
-.time-inp:focus{border-color:var(--indigo)}
+.sheet-overlay{position:fixed;inset:0;background:rgba(15,10,5,0.45);
+  z-index:100;display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(3px)}
+.sheet-overlay.hide{display:none!important}
+.sheet{background:var(--card);border-radius:24px 24px 0 0;
+  padding:12px 24px calc(36px + env(safe-area-inset-bottom,0));
+  width:100%;max-width:480px;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.12)}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 22px}
+.sheet-title{font-size:19px;font-weight:800;text-align:center;color:var(--text);margin-bottom:2px}
+.sheet-subtitle{font-size:13px;font-weight:500;text-align:center;color:var(--text2);margin-bottom:24px}
+
+/* ── DRUM PICKER ─────────────────────────────────── */
+.drum-wrap{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  gap:0;margin-bottom:0;height:200px;
+  user-select:none;
+}
+.drum-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.drum-label{font-size:11px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.8px}
+.drum-scroll{
+  height:168px;
+  overflow-y:scroll;
+  scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  width:100%;
+}
+.drum-scroll::-webkit-scrollbar{display:none}
+.drum-pad{height:56px;flex-shrink:0}
+.drum-item{
+  height:56px;display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:700;color:var(--text3);
+  scroll-snap-align:start;
+  transition:color .15s, font-size .15s;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.drum-item.selected{color:var(--text);font-size:36px}
+.drum-item.near{color:var(--text2);font-size:26px}
+.drum-sep{
+  font-size:36px;font-weight:800;color:var(--text);
+  padding:0 8px;align-self:center;margin-top:24px;
+  line-height:1;
+}
+/* highlight bar sits behind the center item */
+.drum-selection-bar{
+  position:absolute;
+  top:50%;left:16px;right:16px;
+  height:56px;
+  transform:translateY(-4px);
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  pointer-events:none;
+  z-index:0;
+  margin-top:14px;
+}
+.drum-wrap{z-index:1}
+.drum-col{z-index:2;position:relative}
+
+/* fade top/bottom */
+.drum-col::before,.drum-col::after{
+  content:'';position:absolute;left:0;right:0;height:56px;
+  pointer-events:none;z-index:3;
+}
+.drum-col::before{top:20px;background:linear-gradient(to bottom,var(--card),transparent)}
+.drum-col::after{bottom:0;background:linear-gradient(to top,var(--card),transparent)}
+
+/* preview */
+.sheet-preview{
+  text-align:center;font-size:42px;font-weight:800;
+  color:var(--text);letter-spacing:2px;
+  margin:12px 0 24px;
+  font-variant-numeric:tabular-nums;
+}
+
 .sheet-actions{display:flex;flex-direction:column;gap:8px}
 
 /* ── TOAST ────────────────────────────────────────── */
