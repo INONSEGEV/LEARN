@@ -1,267 +1,359 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="theme-color" content="#FAFAF8"/>
-  <title>CatFeed</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ג'נרטור ספר פרויקט</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<!-- ══ AUTH ══════════════════════════════════════════ -->
-<div id="s-auth" class="screen show">
-  <div class="auth-wrap">
-    <div class="auth-hero">
-      <!-- Cat SVG -->
-      <svg class="auth-cat" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="60" cy="68" rx="34" ry="26" fill="#E8E0D5"/>
-        <path d="M34 52 Q28 32 38 28 Q42 44 46 50Z" fill="#E8E0D5"/>
-        <path d="M86 52 Q92 32 82 28 Q78 44 74 50Z" fill="#E8E0D5"/>
-        <path d="M36 30 Q38 26 42 28Z" fill="#C9B8A8"/>
-        <path d="M84 30 Q82 26 78 28Z" fill="#C9B8A8"/>
-        <ellipse cx="60" cy="54" rx="28" ry="24" fill="#EDE6DC"/>
-        <ellipse cx="49" cy="50" rx="5" ry="7" fill="#2D2A26"/>
-        <ellipse cx="71" cy="50" rx="5" ry="7" fill="#2D2A26"/>
-        <ellipse cx="50" cy="49" rx="2" ry="3" fill="#fff"/>
-        <ellipse cx="72" cy="49" rx="2" ry="3" fill="#fff"/>
-        <ellipse cx="60" cy="58" rx="4" ry="3" fill="#E8A090"/>
-        <path d="M57 60 Q60 63 63 60" stroke="#8B6F5E" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-        <line x1="60" y1="58" x2="60" y2="61" stroke="#8B6F5E" stroke-width="1"/>
-        <line x1="38" y1="55" x2="28" y2="53" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="38" y1="58" x2="27" y2="58" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="38" y1="61" x2="28" y2="63" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="82" y1="55" x2="92" y2="53" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="82" y1="58" x2="93" y2="58" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="82" y1="61" x2="92" y2="63" stroke="#8B6F5E" stroke-width="1.2" stroke-linecap="round"/>
-        <path d="M46 86 Q60 94 74 86" stroke="#C9B8A8" stroke-width="8" stroke-linecap="round" fill="none"/>
-      </svg>
-      <h1 class="auth-title">CatFeed</h1>
-      <p class="auth-sub">ניהול ארוחות לחתול המשפחה</p>
-    </div>
-
-    <div class="auth-tabs">
-      <button class="atab active" id="t-login" onclick="switchTab('login')">כניסה</button>
-      <button class="atab" id="t-reg" onclick="switchTab('reg')">הרשמה</button>
-    </div>
-
-    <div id="f-login" class="aform">
-      <input class="inp" type="email" id="li-email" placeholder="אימייל" autocomplete="email"/>
-      <input class="inp" type="password" id="li-pass" placeholder="סיסמה" autocomplete="current-password"/>
-      <div id="li-err" class="err hide"></div>
-      <button class="btn-main" onclick="doLogin()">כניסה</button>
-    </div>
-    <div id="f-reg" class="aform hide">
-      <input class="inp" type="email" id="re-email" placeholder="אימייל" autocomplete="email"/>
-      <input class="inp" type="password" id="re-pass" placeholder="סיסמה (6+ תווים)" autocomplete="new-password"/>
-      <div id="re-err" class="err hide"></div>
-      <button class="btn-main" onclick="doRegister()">הרשמה</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ APP ════════════════════════════════════════════ -->
-<div id="s-app" class="screen hide">
-
-  <!-- Top bar -->
-  <header class="topbar">
-    <div class="tb-left">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <ellipse cx="14" cy="16" rx="9" ry="8" fill="#C9B8A8"/>
-        <path d="M7 13 Q5 7 8 6 Q10 11 11 13Z" fill="#C9B8A8"/>
-        <path d="M21 13 Q23 7 20 6 Q18 11 17 13Z" fill="#C9B8A8"/>
-        <ellipse cx="11" cy="14" rx="2.2" ry="3" fill="#2D2A26"/>
-        <ellipse cx="17" cy="14" rx="2.2" ry="3" fill="#2D2A26"/>
-        <ellipse cx="14" cy="17" rx="1.8" ry="1.4" fill="#E8A090"/>
-      </svg>
-      <span class="tb-name">החתול שלנו</span>
-    </div>
-    <div class="tb-right">
-      <button class="icon-btn" onclick="showStats()" title="סטטיסטיקות">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="2" width="28" height="28" rx="7" fill="#0284C7"/>
+          <path d="M9 16L14 21L23 11" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="9" cy="10" r="1.5" fill="#7DD3FC"/>
+          <circle cx="23" cy="22" r="1.5" fill="#7DD3FC"/>
         </svg>
-      </button>
-      <button class="icon-btn" onclick="doLogout()" title="יציאה">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </button>
+        <span class="logo-text">ProjectBook</span>
+      </div>
+      <div class="header-meta">
+        <span class="header-badge">הנדסת תוכנה</span>
+      </div>
     </div>
   </header>
 
-  <main class="main">
+  <main class="main-content">
 
-    <!-- STATUS PILL -->
-    <div class="status-pill" id="status-pill">
-      <div class="sp-dot"></div>
-      <div class="sp-texts">
-        <span class="sp-headline" id="sp-text">טוען...</span>
-        <span class="sp-sub" id="sp-sub"></span>
-      </div>
+    <div class="page-hero">
+      <p class="hero-eyebrow">כלי אוטומציה לתלמידי הנדסת תוכנה</p>
+      <h1 class="hero-title">ג'נרטור ספר פרויקט</h1>
+      <p class="hero-subtitle">העלה את פרויקט ה-Android Studio שלך ומלא את הפרטים — המערכת תיצור עבורך ספר פרויקט מקצועי ומוכן להגשה.</p>
     </div>
 
-    <!-- MEAL CARDS -->
-    <div class="meals">
+    <form class="project-form" id="projectForm" novalidate onsubmit="return false;">
 
-      <!-- BREAKFAST -->
-      <div class="meal-block" id="mb-breakfast">
-        <div class="meal-label">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      <!-- ===== ZIP UPLOAD ===== -->
+      <div class="form-section upload-section">
+        <div class="section-label">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10 2L10 13M10 2L7 5M10 2L13 5" stroke="#0284C7" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 14V16C3 17.1 3.9 18 5 18H15C16.1 18 17 17.1 17 16V14" stroke="#0284C7" stroke-width="1.75" stroke-linecap="round"/>
           </svg>
-          ארוחת בוקר
+          קובץ הפרויקט
         </div>
 
-        <!-- Feedings list -->
-        <div class="feedings-list" id="fl-breakfast"></div>
-
-        <!-- Actions -->
-        <div class="meal-actions">
-          <button class="btn-feed" id="bf-now-breakfast" onclick="feedNow('breakfast')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
+        <label class="dropzone" id="zipDropzone" for="zipInput">
+          <input type="file" id="zipInput" name="projectZip" accept=".zip" class="visually-hidden" />
+          <div class="dropzone-icon-wrap">
+            <svg class="dropzone-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="8" y="20" width="48" height="36" rx="6" fill="#E0F2FE" stroke="#BAE6FD" stroke-width="1.5"/>
+              <path d="M22 20V16C22 12.686 24.686 10 28 10H36C39.314 10 42 12.686 42 16V20" stroke="#7DD3FC" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M32 30V44M32 30L27 35M32 30L37 35" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="27" y="44" width="10" height="3" rx="1.5" fill="#0284C7" opacity="0.25"/>
             </svg>
-            האכלתי עכשיו
-          </button>
-          <button class="btn-time" onclick="openPicker('breakfast')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </div>
+          <p class="dropzone-title">גרור לכאן את קובץ ה-ZIP</p>
+          <p class="dropzone-sub">או <span class="dropzone-link">לחץ לבחירת קובץ</span></p>
+          <p class="dropzone-hint">Android Studio Project &middot; קובץ .zip בלבד</p>
+          <div class="dropzone-file-info" id="zipFileInfo" hidden>
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M3 2H10L13 5V14H3V2Z" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.25"/>
+              <path d="M10 2V5H13" stroke="#0284C7" stroke-width="1.25"/>
+              <path d="M6 8H10M6 10.5H9" stroke="#0EA5E9" stroke-width="1" stroke-linecap="round"/>
             </svg>
-            שעה אחרת
-          </button>
-        </div>
+            <span id="zipFileName"></span>
+          </div>
+        </label>
       </div>
 
-      <!-- DINNER -->
-      <div class="meal-block" id="mb-dinner">
-        <div class="meal-label">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.2" stroke-linecap="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      <!-- ===== STUDENT & SCHOOL INFO ===== -->
+      <div class="form-section">
+        <div class="section-label">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="8" cy="7" r="3.5" stroke="#0284C7" stroke-width="1.75"/>
+            <path d="M2 17C2 14.239 4.686 12 8 12" stroke="#0284C7" stroke-width="1.75" stroke-linecap="round"/>
+            <path d="M13 14L15 16L19 12" stroke="#0EA5E9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          ארוחת ערב
+          פרטי תלמיד ובית ספר
         </div>
-        <div class="feedings-list" id="fl-dinner"></div>
-        <div class="meal-actions">
-          <button class="btn-feed" id="bf-now-dinner" onclick="feedNow('dinner')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            האכלתי עכשיו
-          </button>
-          <button class="btn-time" onclick="openPicker('dinner')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-            שעה אחרת
-          </button>
+
+        <div class="fields-grid">
+          <div class="field-group">
+            <label class="field-label" for="studentName">שם התלמיד</label>
+            <input
+              class="field-input"
+              type="text"
+              id="studentName"
+              name="studentName"
+              placeholder="לדוגמה: יוסי כהן"
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="studentId">ת.ז התלמיד</label>
+            <input
+              class="field-input"
+              type="text"
+              id="studentId"
+              name="studentId"
+              placeholder="9 ספרות"
+              maxlength="9"
+              inputmode="numeric"
+            />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="teacherName">שם המורה</label>
+            <input
+              class="field-input"
+              type="text"
+              id="teacherName"
+              name="teacherName"
+              placeholder="לדוגמה: ד&quot;ר רחל לוי"
+            />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="schoolName">שם בית הספר</label>
+            <input
+              class="field-input"
+              type="text"
+              id="schoolName"
+              name="schoolName"
+              placeholder="לדוגמה: תיכון עירוני א'"
+            />
+          </div>
+        </div>
+
+        <div class="field-group field-group--full">
+          <label class="field-label" for="schoolLogo">סמל / לוגו בית הספר</label>
+          <label class="image-upload-label" for="schoolLogo">
+            <input type="file" id="schoolLogo" name="schoolLogo" accept="image/*" class="visually-hidden" />
+            <div class="image-upload-inner" id="schoolLogoInner">
+              <svg class="image-upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="3" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="1.25"/>
+                <circle cx="8.5" cy="10" r="1.75" fill="#7DD3FC"/>
+                <path d="M3 15L7.5 11L10.5 14L14 10L21 17" stroke="#0284C7" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="image-upload-text">בחר תמונה <span class="image-upload-hint">PNG, JPG, SVG</span></span>
+            </div>
+            <span class="image-upload-filename" id="schoolLogoName"></span>
+          </label>
         </div>
       </div>
-    </div>
 
-    <!-- QUICK STATS -->
-    <div class="qs-row">
-      <div class="qs-box">
-        <div class="qs-val" id="qs-streak">—</div>
-        <div class="qs-lbl">ימים רצופים</div>
-      </div>
-      <div class="qs-box">
-        <div class="qs-val" id="qs-bf">—</div>
-        <div class="qs-lbl">ממוצע בוקר</div>
-      </div>
-      <div class="qs-box">
-        <div class="qs-val" id="qs-di">—</div>
-        <div class="qs-lbl">ממוצע ערב</div>
-      </div>
-    </div>
+      <!-- ===== PROJECT ASSETS ===== -->
+      <div class="form-section">
+        <div class="section-label">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="2" y="3" width="7" height="7" rx="2" stroke="#0284C7" stroke-width="1.75"/>
+            <rect x="11" y="3" width="7" height="7" rx="2" stroke="#0284C7" stroke-width="1.75"/>
+            <rect x="2" y="12" width="7" height="7" rx="2" stroke="#0EA5E9" stroke-width="1.75"/>
+            <rect x="11" y="12" width="7" height="7" rx="2" stroke="#0EA5E9" stroke-width="1.75"/>
+          </svg>
+          נכסי הפרויקט
+        </div>
 
-    <!-- HISTORY -->
-    <div class="section-hdr">היסטוריה</div>
-    <div id="history" class="history-list"></div>
-    <div style="height:32px"></div>
+        <div class="field-group field-group--full">
+          <label class="field-label" for="projectName">שם הפרויקט</label>
+          <input
+            class="field-input"
+            type="text"
+            id="projectName"
+            name="projectName"
+            placeholder="לדוגמה: אפליקציית ניהול משימות"
+          />
+        </div>
+
+        <div class="asset-pair">
+          <div class="asset-pair-header">
+            <div class="asset-pair-badge">UML</div>
+            <span>תרשים קשרי המחלקות</span>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label" for="umlImage">תמונת UML של קשרי המחלקות</label>
+              <label class="image-upload-label" for="umlImage">
+                <input type="file" id="umlImage" name="umlImage" accept="image/png,image/jpeg" class="visually-hidden" />
+                <div class="image-upload-inner" id="umlImageInner">
+                  <svg class="image-upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="3" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="1.25"/>
+                    <circle cx="8.5" cy="10" r="1.75" fill="#7DD3FC"/>
+                    <path d="M3 15L7.5 11L10.5 14L14 10L21 17" stroke="#0284C7" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="image-upload-text">העלה PNG / JPG <span class="image-upload-hint">של תרשים ה-UML</span></span>
+                </div>
+                <span class="image-upload-filename" id="umlImageName"></span>
+              </label>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="umlUrl">קישור ל-UML</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M8.5 11.5C9.33 12.5 10.7 12.9 11.9 12.2L14.4 10.7C15.8 9.9 16.2 8.1 15.4 6.7C14.6 5.3 12.8 4.9 11.4 5.7L9.9 6.6" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M11.5 8.5C10.67 7.5 9.3 7.1 8.1 7.8L5.6 9.3C4.2 10.1 3.8 11.9 4.6 13.3C5.4 14.7 7.2 15.1 8.6 14.3L10.1 13.4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <input
+                  class="field-input field-input--with-icon"
+                  type="url"
+                  id="umlUrl"
+                  name="umlUrl"
+                  placeholder="https://..."
+                  dir="ltr"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="asset-pair">
+          <div class="asset-pair-header">
+            <div class="asset-pair-badge asset-pair-badge--teal">Flow</div>
+            <span>תרשים זרימת המסכים</span>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label" for="flowImage">תרשים זרימת המסכים (PNG)</label>
+              <label class="image-upload-label" for="flowImage">
+                <input type="file" id="flowImage" name="flowImage" accept="image/png,image/jpeg" class="visually-hidden" />
+                <div class="image-upload-inner" id="flowImageInner">
+                  <svg class="image-upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="3" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="1.25"/>
+                    <circle cx="8.5" cy="10" r="1.75" fill="#7DD3FC"/>
+                    <path d="M3 15L7.5 11L10.5 14L14 10L21 17" stroke="#0284C7" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="image-upload-text">העלה PNG / JPG <span class="image-upload-hint">של זרימת המסכים</span></span>
+                </div>
+                <span class="image-upload-filename" id="flowImageName"></span>
+              </label>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="flowUrl">קישור לתרשים זרימת המסכים</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M8.5 11.5C9.33 12.5 10.7 12.9 11.9 12.2L14.4 10.7C15.8 9.9 16.2 8.1 15.4 6.7C14.6 5.3 12.8 4.9 11.4 5.7L9.9 6.6" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M11.5 8.5C10.67 7.5 9.3 7.1 8.1 7.8L5.6 9.3C4.2 10.1 3.8 11.9 4.6 13.3C5.4 14.7 7.2 15.1 8.6 14.3L10.1 13.4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <input
+                  class="field-input field-input--with-icon"
+                  type="url"
+                  id="flowUrl"
+                  name="flowUrl"
+                  placeholder="https://..."
+                  dir="ltr"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== COLOR PICKER ===== -->
+      <div class="form-section color-picker-section">
+        <div class="section-label">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="10" cy="10" r="7" stroke="#0284C7" stroke-width="1.75"/>
+            <circle cx="7"  cy="8.5" r="1.5" fill="#0EA5E9"/>
+            <circle cx="13" cy="8.5" r="1.5" fill="#0284C7"/>
+            <circle cx="10" cy="13" r="1.5"  fill="#7DD3FC"/>
+          </svg>
+          צבע כותרות הטבלה
+        </div>
+        <div class="color-palette" id="colorPalette" role="radiogroup" aria-label="בחר צבע רקע לכותרות הטבלה">
+          <label class="color-swatch-label" title="תכלת עדין">
+            <input type="radio" name="tableColor" value="DBEAFE" class="visually-hidden" checked />
+            <span class="color-swatch" style="background:#DBEAFE;"></span>
+          </label>
+          <label class="color-swatch-label" title="ירוק מנטה">
+            <input type="radio" name="tableColor" value="D1FAE5" class="visually-hidden" />
+            <span class="color-swatch" style="background:#D1FAE5;"></span>
+          </label>
+          <label class="color-swatch-label" title="לבנדר">
+            <input type="radio" name="tableColor" value="EDE9FE" class="visually-hidden" />
+            <span class="color-swatch" style="background:#EDE9FE;"></span>
+          </label>
+          <label class="color-swatch-label" title="ורוד פנינה">
+            <input type="radio" name="tableColor" value="FCE7F3" class="visually-hidden" />
+            <span class="color-swatch" style="background:#FCE7F3;"></span>
+          </label>
+          <label class="color-swatch-label" title="צהוב חמאה">
+            <input type="radio" name="tableColor" value="FEF9C3" class="visually-hidden" />
+            <span class="color-swatch" style="background:#FEF9C3;"></span>
+          </label>
+          <label class="color-swatch-label" title="אפרסק">
+            <input type="radio" name="tableColor" value="FFEDD5" class="visually-hidden" />
+            <span class="color-swatch" style="background:#FFEDD5;"></span>
+          </label>
+          <label class="color-swatch-label" title="אפור פנינה">
+            <input type="radio" name="tableColor" value="F1F5F9" class="visually-hidden" />
+            <span class="color-swatch" style="background:#F1F5F9;"></span>
+          </label>
+          <label class="color-swatch-label" title="ציאן קרח">
+            <input type="radio" name="tableColor" value="CFFAFE" class="visually-hidden" />
+            <span class="color-swatch" style="background:#CFFAFE;"></span>
+          </label>
+        </div>
+        <p class="color-hint">הצבע שתבחר יופיע כרקע שורת הכותרת בטבלת הדרישות</p>
+      </div>
+
+      <!-- ===== FONT PICKER ===== -->
+      <div class="form-section font-picker-section">
+        <div class="section-label">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 15L8 5L12 15M6 11H10" stroke="#0284C7" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 8V15" stroke="#0284C7" stroke-width="1.75" stroke-linecap="round"/>
+            <circle cx="14" cy="6.5" r="1" fill="#0EA5E9"/>
+          </svg>
+          גופן המסמך
+        </div>
+        <div class="font-options" role="radiogroup" aria-label="בחר גופן למסמך">
+          <label class="font-option-label" for="fontArial">
+            <input type="radio" id="fontArial" name="tableFont" value="Arial" class="visually-hidden" checked />
+            <span class="font-option-card">
+              <span class="font-option-preview" style="font-family: Arial;">Aa אבג</span>
+              <span class="font-option-name">Arial</span>
+            </span>
+          </label>
+          <label class="font-option-label" for="fontDavid">
+            <input type="radio" id="fontDavid" name="tableFont" value="David" class="visually-hidden" />
+            <span class="font-option-card">
+              <span class="font-option-preview" style="font-family: 'David', serif;">Aa אבג</span>
+              <span class="font-option-name">David</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ===== SUBMIT ===== -->
+      <div class="submit-zone">
+        <button type="button" class="btn-generate" id="generateBtn">
+          <svg class="btn-icon" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 11H18M11 4L18 11L11 18" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>ג'נרט ספר פרויקט</span>
+          <div class="btn-shimmer" aria-hidden="true"></div>
+        </button>
+        <p class="submit-hint">הקובץ יעובד ויוחזר בתור PDF מוכן להגשה</p>
+      </div>
+
+    </form>
   </main>
-</div>
 
-<!-- ══ STATS ══════════════════════════════════════════ -->
-<div id="s-stats" class="screen hide">
-  <header class="topbar">
-    <div class="tb-left">
-      <button class="icon-btn" onclick="showApp()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
-      <span class="tb-name">סטטיסטיקות</span>
-    </div>
-  </header>
-  <main class="main">
-    <div class="section-hdr">שעות האכלה — 14 ימים</div>
-    <div class="chart-box"><canvas id="chart-times"></canvas></div>
-    <div class="section-hdr">השלמה יומית</div>
-    <div class="chart-box"><canvas id="chart-compl"></canvas></div>
-    <div class="section-hdr">ממוצעים</div>
-    <div class="avg-list">
-      <div class="avg-row"><span>בוקר ממוצע</span><strong id="av-bf">—</strong></div>
-      <div class="avg-row"><span>ערב ממוצע</span><strong id="av-di">—</strong></div>
-      <div class="avg-row"><span>ימים עם 2 ארוחות</span><strong id="av-full">—</strong></div>
-      <div class="avg-row"><span>שיא ימים רצופים</span><strong id="av-streak">—</strong></div>
-    </div>
-    <div style="height:32px"></div>
-  </main>
-</div>
+  <footer class="site-footer">
+    <p>כלי פנימי לשימוש תלמידי הנדסת תוכנה &middot; <span>כל הזכויות שמורות</span></p>
+  </footer>
 
-<!-- ══ TIME PICKER SHEET ══════════════════════════════ -->
-<div id="sheet-overlay" class="sheet-overlay hide" onclick="closeSheet(event)">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-title">בחר שעה</div>
-    <div class="sheet-subtitle" id="sheet-subtitle">ארוחת בוקר</div>
-
-    <!-- Custom drum picker -->
-    <div class="drum-wrap">
-      <div class="drum-col">
-        <div class="drum-label">דקות</div>
-        <div class="drum-scroll" id="drum-m" onscroll="drumScroll('m')">
-          <div class="drum-pad"></div>
-          <div class="drum-pad"></div>
-        </div>
-      </div>
-      <div class="drum-sep">:</div>
-      <div class="drum-col">
-        <div class="drum-label">שעות</div>
-        <div class="drum-scroll" id="drum-h" onscroll="drumScroll('h')">
-          <div class="drum-pad"></div>
-          <div class="drum-pad"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- selection highlight bar -->
-    <div class="drum-selection-bar"></div>
-
-    <div class="sheet-preview" id="sheet-preview">00:00</div>
-
-    <div class="sheet-actions">
-      <button class="btn-main" onclick="confirmPicker()">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-left:6px"><polyline points="20 6 9 17 4 12"/></svg>
-        אישור
-      </button>
-      <button class="btn-ghost" onclick="closeSheet()">ביטול</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast" class="toast hide"></div>
-
-<script src="app.js"></script>
+  <!-- ספריית docx ליצירת קובץ Word בדפדפן -->
+  <script src="jszip.min.js"></script>
+  <script src="docx.iife.js"></script>
+  <script src="analyzer.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
